@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  # 1. Сервис базы данных PostgreSQL
+  db:
+    image: postgres:16-alpine # Используем официальный, легкий образ PostgreSQL
+    container_name: postgres_db
+    # Переменные окружения для настройки самой базы данных
+    environment:
+      - POSTGRES_DB=todo_db
+      - POSTGRES_USER=devops_user
+      - POSTGRES_PASSWORD=secure_password123
+    # Создаем внешний том для сохранения данных БД
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    # Даем немного времени для запуска БД
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U devops_user -d todo_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 2. Сервис веб-приложения Django
+  web:
+    # Инструкция для Docker: собрать образ, используя Dockerfile в текущей директории
+    build: . 
+    container_name: django_web
+    # Проброс портов: 8000 хоста на 8000 контейнера
+    ports:
+      - "8000:8000"
+    # Переменные окружения для подключения Django к БД
+    environment:
+      - DB_NAME=todo_db
+      - DB_USER=devops_user
+      - DB_PASSWORD=secure_password123
+      - DB_HOST=db # имя сервиса к которому нужно подключиться
+    # Ждем, пока сервис 'db' запустится и пройдет проверку здоровья (healthcheck)
+      - PYTHONPATH=/usr/src/app
+    depends_on:
+      db:
+        condition: service_healthy
+    # Команда, которая переопределит или подтвердит CMD из Dockerfile
+    command: gunicorn --bind 0.0.0.0:8000 myproject.wsgi:application
+
+# Определение внешнего тома, который будет хранить данные PostgreSQL на вашем компьютере
+volumes:
+  postgres_data:

@@ -1,0 +1,16 @@
+# Python
+*.pyc
+__pycache__/
+venv/
+.env
+
+# Django
+db.sqlite3
+/staticfiles/
+/media/
+.mypy_cache/
+.pytest_cache/
+
+# Docker/System
+*.log
+!docker-compose.yml
