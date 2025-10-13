@@ -1,0 +1,38 @@
+pipeline {
+    agent any // Запускать pipeline на любом доступном агенте (в данном случае, на самом сервере Jenkins)
+
+    stages {
+        stage('Checkout Code') {
+            steps {
+                // Получаем код из вашего репозитория (Git)
+                checkout scm
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    // Собираем Docker-образ. 'sh' выполняет команды Shell.
+                    sh 'docker build -t django-todo-image:latest .'
+                }
+            }
+        }
+
+        stage('Run Django Tests') {
+            steps {
+                script {
+                    // 1. Запускаем временный контейнер для тестов
+                    sh 'docker run -d --name test-container django-todo-image:latest sh -c "sleep 60"'
+                    
+                    // 2. Выполняем тесты внутри запущенного контейнера
+                    sh 'docker exec test-container python manage.py test'
+                    
+                    // 3. Останавливаем и удаляем контейнер после тестов
+                    sh 'docker rm -f test-container'
+                }
+            }
+        }
+        
+        // Здесь будет этап 'Deploy', который мы добавим позже
+    }
+}

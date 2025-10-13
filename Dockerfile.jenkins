@@ -1,0 +1,17 @@
+# Основа - официальный LTS образ Jenkins
+FROM jenkins/jenkins:lts
+
+USER root
+
+# Устанавливаем необходимые утилиты и Docker CLI
+# Используем wget и прямую установку бинарника, чтобы избежать проблем с apt-get и ключами
+RUN apt-get update && \
+    apt-get install -y wget unzip && \
+    wget https://download.docker.com/linux/static/stable/x86_64/docker-24.0.5.tgz -O /tmp/docker.tgz && \
+    tar -xzf /tmp/docker.tgz -C /tmp && \
+    mv /tmp/docker/docker /usr/local/bin/ && \
+    rm -rf /tmp/docker.tgz /tmp/docker && \
+    apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/*
+
+USER jenkins

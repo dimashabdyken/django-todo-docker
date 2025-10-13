@@ -58,9 +58,25 @@ services:
     depends_on:
       - web # Ждем, пока Django запустится
 
-
+  jenkins:
+    # ИСПОЛЬЗУЕМ: Собрать образ из нашего нового Dockerfile.jenkins
+    build: 
+      context: . # Контекст - текущая директория
+      dockerfile: Dockerfile.jenkins # Имя файла
+    
+    privileged: true 
+    user: root
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    container_name: jenkins_server
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
 
 # Определение внешнего тома, который будет хранить данные PostgreSQL на вашем компьютере
 volumes:
   postgres_data:
   static_volume:
+  jenkins_home:
