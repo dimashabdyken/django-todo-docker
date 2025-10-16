@@ -33,6 +33,31 @@ pipeline {
             }
         }
         
-        // Здесь будет этап 'Deploy', который мы добавим позже
+        stage('Deploy Application'){
+            steps {
+                script {
+                    // 1. Остановка старых контейнеров (web и nginx)
+                    // Это нужно, чтобы Docker Compose мог запустить их заново с новым образом.
+                    echo "Stopping old containers..."
+                    sh 'docker-compose stop web nginx'
+                    sh 'docker-compose rm -f web nginx'
+
+                    // 2. Запуск новых контейнеров
+                    // Docker Compose пересоздаст web и nginx, используя образ django-todo-image:latest,
+                    // который был собран на этапе 'Build Docker Image'.
+                    echo "Starting new containers..."
+                    sh 'docker-compose up -d web nginx'
+                    
+                    // 3. Выполнение миграций (если были изменения в БД)
+                    echo "Running database migrations..."
+                    sh 'docker exec django_web python manage.py migrate --noinput'
+                    
+                    echo "Collecting static files for Nginx..."
+                    sh 'docker exec django_web python manage.py collectstatic --noinput'
+
+                    echo "Deployment completed successfully! New version is live."
+                }
+            }
+        }
     }
 }
