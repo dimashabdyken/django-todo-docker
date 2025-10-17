@@ -47,7 +47,13 @@ pipeline {
                     // -v удалит тома, если они не нужны (пока пропустим, чтобы сохранить данные DB)
                     sh 'docker-compose down --remove-orphans'
                     
-                    // 2. Запуск новых контейнеров
+                    / НОВОЕ: Устанавливаем полные права для избежания проблем с монтированием
+                    [Pipeline] echo
+                    echo 'Setting permissions for Nginx config...'
+                    [Pipeline] sh
+                    sh 'chmod -R 777 ./nginx' // Даем полные права на папку Nginx
+                    
+                     // 2. Запуск новых контейнеров
                     // Docker Compose пересоздаст web и nginx, используя образ django-todo-image:latest,
                     // который был собран на этапе 'Build Docker Image'.
                     echo "Starting new containers..."
