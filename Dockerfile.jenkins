@@ -11,9 +11,15 @@ RUN apt-get update && \
     tar -xzf /tmp/docker.tgz -C /tmp && \
     mv /tmp/docker/docker /usr/local/bin/ && \
     rm -rf /tmp/docker.tgz /tmp/docker && \
-    apt-get autoremove -y && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get autoremove -y
 
-RUN groupadd -f docker && usermod -aG docker jenkins
+# !!! НОВОЕ: Установка Docker Compose CLI
+# Скачиваем официальный бинарник, делаем его исполняемым и помещаем в PATH
+RUN wget https://github.com/docker/compose/releases/download/v2.24.5/docker-compose-linux-x86_64 -O /usr/local/bin/docker-compose && \
+    chmod +x /usr/local/bin/docker-compose
+
+# Добавление пользователя 'jenkins' в группу 'docker' и очистка
+RUN groupadd -f docker && usermod -aG docker jenkins && \
+    rm -rf /var/lib/apt/lists/*
 
 USER jenkins
