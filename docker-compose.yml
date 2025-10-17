@@ -45,18 +45,14 @@ services:
       - static_volume:/usr/src/app/staticfiles
   
   nginx:
-    image: nginx:1.25-alpine 
+    image: nginx:1.25-alpine
     container_name: nginx_proxy
     ports:
-      # Nginx слушает порт 80 хоста и перенаправляет на свой порт 80
       - "80:80"
     volumes:
-      # 1. Копируем файл конфигурации
-      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
-      # 2. Даем Nginx доступ к собранной статике
-      - static_volume:/vol/static/ 
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro  # <--- ИСПРАВЛЕНО
     depends_on:
-      - web # Ждем, пока Django запустится
+      - web
 
   jenkins:
     # ИСПОЛЬЗУЕМ: Собрать образ из нашего нового Dockerfile.jenkins
