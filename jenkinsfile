@@ -43,8 +43,6 @@ pipeline {
                     sh 'docker-compose rm -f web nginx'
 
                     echo 'Cleaning up existing stack to avoid conflicts...'
-                    // docker-compose down удаляет контейнеры и сеть по имени проекта
-                    // -v удалит тома, если они не нужны (пока пропустим, чтобы сохранить данные DB)
                     sh 'docker-compose down --remove-orphans'
                     
                     // НОВОЕ: Установка прав на папку nginx
