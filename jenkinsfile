@@ -37,13 +37,13 @@ pipeline {
                     sh 'docker-compose down --remove-orphans'
                     
                     echo 'Setting permissions for Nginx config...'
-                    sh 'chmod -R 777 ./nginx'   
+                    // ИСПРАВЛЕНО: Устанавливаем права только для файла
+                    sh 'chmod 644 ./nginx/default.conf'   
                     
                     echo "Starting new containers..."
-                    // ИСПРАВЛЕНО: Заменили postgres_db на db
                     sh 'docker-compose up -d --force-recreate db web nginx' 
                     
-                    // Рекомендуется добавить паузу, чтобы БД успела полностью запуститься
+                    // ДОБАВЛЕНО: Даем время на гарантированный старт БД и Nginx
                     sh 'sleep 10' 
 
                     echo "Running database migrations..."
