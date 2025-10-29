@@ -52,8 +52,8 @@ pipeline {
                     // Docker Compose пересоздаст web и nginx, используя образ django-todo-image:latest,
                     // который был собран на этапе 'Build Docker Image'.
                     echo "Starting new containers..."
-                    sh 'docker-compose up -d --force-recreate web nginx'
-
+                    sh 'docker-compose up -d --force-recreate'
+                    
                     // 3. Выполнение миграций (если были изменения в БД)
                     echo "Running database migrations..."
                     sh 'docker exec django_web python manage.py migrate --noinput'
