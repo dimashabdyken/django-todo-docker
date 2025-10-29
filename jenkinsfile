@@ -1,10 +1,9 @@
 pipeline {
-    agent any // Запускать pipeline на любом доступном агенте (в данном случае, на самом сервере Jenkins)
+    agent any
 
     stages {
         stage('Checkout Code') {
             steps {
-                // Получаем код из вашего репозитория (Git)
                 checkout scm
             }
         }
@@ -12,7 +11,6 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Собираем Docker-образ. 'sh' выполняет команды Shell.
                     sh 'docker build -t django-todo-image:latest .'
                 }
             }
@@ -21,13 +19,8 @@ pipeline {
         stage('Run Django Tests') {
             steps {
                 script {
-                    // 1. Запускаем временный контейнер для тестов
                     sh 'docker run -d --name test-container django-todo-image:latest sh -c "sleep 60"'
-                    
-                    // 2. Выполняем тесты внутри запущенного контейнера
                     sh 'docker exec test-container python manage.py test'
-                    
-                    // 3. Останавливаем и удаляем контейнер после тестов
                     sh 'docker rm -f test-container'
                 }
             }
@@ -36,8 +29,6 @@ pipeline {
         stage('Deploy Application'){
             steps {
                 script {
-                    // 1. Остановка старых контейнеров (web и nginx)
-                    // Это нужно, чтобы Docker Compose мог запустить их заново с новым образом.
                     echo "Stopping old containers..."
                     sh 'docker-compose stop web nginx'
                     sh 'docker-compose rm -f web nginx'
@@ -48,13 +39,13 @@ pipeline {
                     echo 'Setting permissions for Nginx config...'
                     sh 'chmod -R 777 ./nginx'   
                     
-                     // 2. Запуск новых контейнеров
-                    // Docker Compose пересоздаст web и nginx, используя образ django-todo-image:latest,
-                    // который был собран на этапе 'Build Docker Image'.
                     echo "Starting new containers..."
-                    sh 'docker-compose up -d --force-recreate postgres_db web nginx'
+                    // ИСПРАВЛЕНО: Заменили postgres_db на db
+                    sh 'docker-compose up -d --force-recreate db web nginx' 
+                    
+                    // Рекомендуется добавить паузу, чтобы БД успела полностью запуститься
+                    sh 'sleep 10' 
 
-                    // 3. Выполнение миграций (если были изменения в БД)
                     echo "Running database migrations..."
                     sh 'docker exec django_web python manage.py migrate --noinput'
                     
