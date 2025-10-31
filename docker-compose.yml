@@ -45,13 +45,19 @@ services:
       - static_volume:/usr/src/app/staticfiles
   
   nginx:
-    image: nginx:1.25-alpine
+    # 1. Заменяем 'image' на 'build' для сборки собственного образа Nginx 
+    # (который будет содержать config из nginx/Dockerfile)
+    build: ./nginx 
     container_name: nginx_proxy
     ports:
       - "80:80"
     volumes:
-      # Обновление: Монтируем default.conf в /etc/nginx/conf.d/
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro 
+      # 2. УДАЛЯЕМ проблемное монтирование конфигурационного файла default.conf
+      # (теперь он будет скопирован в образ)
+
+      # 3. ДОБАВЛЯЕМ монтирование тома статических файлов Django.
+      # Nginx должен иметь доступ к тому, куда Django собрал статику.
+      - static_volume:/usr/src/app/staticfiles 
     depends_on:
       - web
 
