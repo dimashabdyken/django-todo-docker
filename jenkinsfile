@@ -46,6 +46,8 @@ pipeline {
                     
                     sh 'docker rm -f django_web || true'
                     
+                    sh 'docker rm -f nginx_proxy || true'
+                    
                     sh 'docker-compose down --remove-orphans'
                     
                     echo 'Setting permissions for Nginx config...'
