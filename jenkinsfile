@@ -41,7 +41,11 @@ pipeline {
                     sh 'docker-compose rm -f web nginx'
 
                     echo 'Cleaning up existing stack to avoid conflicts...'
+                    
                     sh 'docker rm -f postgres_db || true'
+                    
+                    sh 'docker rm -f django_web || true'
+                    
                     sh 'docker-compose down --remove-orphans'
                     
                     echo 'Setting permissions for Nginx config...'
