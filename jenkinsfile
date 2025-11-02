@@ -19,8 +19,15 @@ pipeline {
         stage('Run Django Tests') {
             steps {
                 script {
-                    sh 'docker run -d --name test-container django-todo-image:latest sh -c "sleep 60"'
+                    sh 'docker rm -f test-container || true' 
+
+                    // Запуск нового контейнера
+                    sh "docker run -d --name test-container django-todo-image:latest sh -c 'sleep 60'"
+
+                    // Выполнение тестов
                     sh 'docker exec test-container python manage.py test'
+
+                    // Удаление контейнера после тестов
                     sh 'docker rm -f test-container'
                 }
             }
