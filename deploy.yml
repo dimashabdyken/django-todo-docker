@@ -1,0 +1,33 @@
+---
+- name: Deploy Django App via Docker Compose
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  tasks:
+    - name: Stop and remove ONLY Application containers
+      shell: |
+        # Удаляем только контейнеры приложения, не трогая Jenkins
+        docker rm -f django_web nginx_proxy postgres_db || true
+      args:
+        chdir: "{{ playbook_dir }}"
+
+    - name: Ensure Nginx config has correct permissions
+      file:
+        path: "{{ playbook_dir }}/nginx/default.conf"
+        mode: '0644'
+
+    - name: Start Application (Explicitly excluding Jenkins)
+      shell: docker-compose up -d --build --force-recreate web nginx db
+      args:
+        chdir: "{{ playbook_dir }}"
+
+    - name: Wait for database to be ready
+      pause:
+        seconds: 15
+
+    - name: Apply Database Migrations
+      shell: docker exec django_web python manage.py migrate --noinput
+
+    - name: Collect Static Files
+      shell: docker exec django_web python manage.py collectstatic --noinput
