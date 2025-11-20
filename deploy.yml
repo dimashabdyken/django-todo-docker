@@ -5,10 +5,10 @@
   gather_facts: no
 
   tasks:
-    - name: Stop and remove existing containers (Clean start)
+    - name: Stop and remove ONLY Application containers
       shell: |
-        docker-compose down --remove-orphans
-        docker rm -f postgres_db django_web nginx_proxy || true
+        # Удаляем только контейнеры приложения, не трогая Jenkins
+        docker rm -f django_web nginx_proxy postgres_db || true
       args:
         chdir: "{{ playbook_dir }}"
 
@@ -17,8 +17,8 @@
         path: "{{ playbook_dir }}/nginx/default.conf"
         mode: '0644'
 
-    - name: Start application with Docker Compose
-      shell: docker-compose up -d --build --force-recreate
+    - name: Start Application (Explicitly excluding Jenkins)
+      shell: docker-compose up -d --build --force-recreate web nginx db
       args:
         chdir: "{{ playbook_dir }}"
 
