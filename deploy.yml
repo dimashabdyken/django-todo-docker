@@ -1,0 +1,33 @@
+---
+- name: Deploy Django App via Docker Compose
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  tasks:
+    - name: Stop and remove existing containers (Clean start)
+      shell: |
+        docker-compose down --remove-orphans
+        docker rm -f postgres_db django_web nginx_proxy || true
+      args:
+        chdir: "{{ playbook_dir }}"
+
+    - name: Ensure Nginx config has correct permissions
+      file:
+        path: "{{ playbook_dir }}/nginx/default.conf"
+        mode: '0644'
+
+    - name: Start application with Docker Compose
+      shell: docker-compose up -d --build --force-recreate
+      args:
+        chdir: "{{ playbook_dir }}"
+
+    - name: Wait for database to be ready
+      pause:
+        seconds: 15
+
+    - name: Apply Database Migrations
+      shell: docker exec django_web python manage.py migrate --noinput
+
+    - name: Collect Static Files
+      shell: docker exec django_web python manage.py collectstatic --noinput

@@ -1,24 +1,21 @@
-# Основа - официальный LTS образ Jenkins
 FROM jenkins/jenkins:lts
 
 USER root
 
-# Устанавливаем необходимые утилиты и Docker CLI
-# Используем wget и прямую установку бинарника, чтобы избежать проблем с apt-get и ключами
+# Установка необходимых пакетов, Python и Docker CLI
 RUN apt-get update && \
-    apt-get install -y wget unzip && \
+    apt-get install -y wget unzip python3 python3-pip python3-venv && \
     wget https://download.docker.com/linux/static/stable/x86_64/docker-24.0.5.tgz -O /tmp/docker.tgz && \
     tar -xzf /tmp/docker.tgz -C /tmp && \
     mv /tmp/docker/docker /usr/local/bin/ && \
     rm -rf /tmp/docker.tgz /tmp/docker && \
-    apt-get autoremove -y
-
-# !!! НОВОЕ: Установка Docker Compose CLI
-# Скачиваем официальный бинарник, делаем его исполняемым и помещаем в PATH
-RUN wget https://github.com/docker/compose/releases/download/v2.24.5/docker-compose-linux-x86_64 -O /usr/local/bin/docker-compose && \
+    wget https://github.com/docker/compose/releases/download/v2.24.5/docker-compose-linux-x86_64 -O /usr/local/bin/docker-compose && \
     chmod +x /usr/local/bin/docker-compose
 
-# Добавление пользователя 'jenkins' в группу 'docker' и очистка
+# Установка Ansible через pip (игнорируем защиту системных пакетов, так как это контейнер)
+RUN pip3 install ansible --break-system-packages
+
+# Настройка прав
 RUN groupadd -f docker && usermod -aG docker jenkins && \
     rm -rf /var/lib/apt/lists/*
 

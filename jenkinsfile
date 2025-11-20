@@ -10,64 +10,29 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    sh 'docker build -t django-todo-image:latest .'
-                }
+                // Просто проверяем, что Dockerfile валидный
+                sh 'docker build -t django-todo-image:latest .'
             }
         }
 
         stage('Run Django Tests') {
             steps {
                 script {
-                    sh 'docker rm -f test-container || true' 
-
-                    // Запуск нового контейнера
-                    sh "docker run -d --name test-container django-todo-image:latest sh -c 'sleep 60'"
-
-                    // Выполнение тестов
+                    // Запускаем тесты во временном контейнере
+                    sh 'docker rm -f test-container || true'
+                    sh "docker run -d --name test-container django-todo-image:latest sh -c 'sleep 30'"
+                    sh 'sleep 5' 
                     sh 'docker exec test-container python manage.py test'
-
-                    // Удаление контейнера после тестов
                     sh 'docker rm -f test-container'
                 }
             }
         }
         
-        stage('Deploy Application'){
+        stage('Deploy via Ansible') {
             steps {
-                script {
-                    echo "Stopping old containers..."
-                    sh 'docker-compose stop web nginx'
-                    sh 'docker-compose rm -f web nginx'
-
-                    echo 'Cleaning up existing stack to avoid conflicts...'
-                    
-                    sh 'docker rm -f postgres_db || true'
-                    
-                    sh 'docker rm -f django_web || true'
-                    
-                    sh 'docker rm -f nginx_proxy || true'
-                    
-                    sh 'docker-compose down --remove-orphans'
-                    
-                    echo 'Setting permissions for Nginx config...'
-                    // ИСПРАВЛЕНО: Устанавливаем права только для файла
-                    sh 'chmod 644 ./nginx/default.conf'   
-                    
-                    echo "Starting new containers..."
-                    sh 'docker-compose up -d --force-recreate db web nginx' 
-                    
-                    // ДОБАВЛЕНО: Даем время на гарантированный старт БД и Nginx
-                    sh 'sleep 10' 
-
-                    echo "Running database migrations..."
-                    sh 'docker exec django_web python manage.py migrate --noinput'
-                    
-                    echo "Collecting static files for Nginx..."
-                    sh 'docker exec django_web python manage.py collectstatic --noinput'
-
-                    echo "Deployment completed successfully! New version is live."
-                }
+                // Вся магия теперь тут
+                echo "Starting Deployment via Ansible..."
+                sh 'ansible-playbook deploy.yml'
             }
         }
     }
