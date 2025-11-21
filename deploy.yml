@@ -5,44 +5,45 @@
   gather_facts: no
 
   tasks:
+    # Шаг 1: Убиваем всех, кто занимает 80 порт (на всякий случай)
     - name: Force kill any container occupying port 80
       shell: |
-        # Находим ID контейнера, который слушает 80 порт
         ID=$(docker ps -q -f "publish=80")
-        # Если нашли - убиваем
         if [ -n "$ID" ]; then
           docker rm -f $ID
         fi
       ignore_errors: yes
-    
-    - name: Stop and remove ONLY Application containers
-      shell: |
-        docker-compose stop web nginx db || true
-        
-        # Удаляем только контейнеры приложения, не трогая Jenkins
-        docker rm -f django_web nginx_proxy postgres_db || true
-      
-        # Дополнительно удаляем сирот
-        docker-compose down --remove-orphans  || true
+
+    # Шаг 2: Останавливаем и чистим старые контейнеры через Compose
+    - name: Stop and remove application containers
+      shell: docker-compose down --remove-orphans
       args:
         chdir: "{{ playbook_dir }}"
 
+    # Шаг 3: Гарантируем права на конфиг
     - name: Ensure Nginx config has correct permissions
       file:
         path: "{{ playbook_dir }}/nginx/default.conf"
         mode: '0644'
 
-    - name: Start Application (Explicitly excluding Jenkins)
+    # Шаг 4: Запускаем веб-часть (Дженкинс не трогаем, он и так работает)
+    - name: Start Application
       shell: docker-compose up -d --build --force-recreate web nginx db
       args:
         chdir: "{{ playbook_dir }}"
 
+    # Шаг 5: Ждем базу
     - name: Wait for database to be ready
       pause:
         seconds: 15
 
+    # Шаг 6: Миграции и статика (используем имя сервиса 'web', а не имя контейнера)
     - name: Apply Database Migrations
-      shell: docker exec django_web python manage.py migrate --noinput
+      shell: docker-compose exec -T web python manage.py migrate --noinput
+      args:
+        chdir: "{{ playbook_dir }}"
 
     - name: Collect Static Files
-      shell: docker exec django_web python manage.py collectstatic --noinput
+      shell: docker-compose exec -T web python manage.py collectstatic --noinput
+      args:
+        chdir: "{{ playbook_dir }}"

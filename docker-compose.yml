@@ -3,7 +3,7 @@ version: '3.8'
 services:
   db:
     image: postgres:16-alpine
-    # Убрали container_name, теперь Docker сам назовет его корректно
+    # container_name: postgres_db  <-- УДАЛИЛИ
     environment:
       - POSTGRES_DB=todo_db
       - POSTGRES_USER=devops_user
@@ -17,8 +17,8 @@ services:
       retries: 5
 
   web:
-    build: .
-    # Убрали container_name
+    build: . 
+    # container_name: django_web  <-- УДАЛИЛИ
     environment:
       - DB_NAME=todo_db
       - DB_USER=devops_user
@@ -26,7 +26,7 @@ services:
       - DB_HOST=db
       - PYTHONPATH=/usr/src/app
     command: gunicorn --bind 0.0.0.0:8000 --reload myproject.wsgi:application
-    ports:
+    ports: 
       - "8000:8000"
     volumes:
       - static_volume:/usr/src/app/staticfiles
@@ -34,23 +34,23 @@ services:
     depends_on:
       db:
         condition: service_healthy
-
+  
   nginx:
-    build: ./nginx
-    # Убрали container_name
+    build: ./nginx 
+    # container_name: nginx_proxy <-- УДАЛИЛИ
     ports:
       - "80:80"
     volumes:
-      - static_volume:/usr/src/app/staticfiles
+      - static_volume:/usr/src/app/staticfiles 
     depends_on:
       - web
 
   jenkins:
-    build:
-      context: .
+    build: 
+      context: . 
       dockerfile: Dockerfile.jenkins
-    # Убрали container_name
-    privileged: true
+    # container_name: jenkins_server <-- УДАЛИЛИ
+    privileged: true 
     user: root
     ports:
       - "8080:8080"
