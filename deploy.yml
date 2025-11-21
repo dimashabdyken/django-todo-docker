@@ -5,6 +5,16 @@
   gather_facts: no
 
   tasks:
+    - name: Force kill any container occupying port 80
+      shell: |
+        # Находим ID контейнера, который слушает 80 порт
+        ID=$(docker ps -q -f "publish=80")
+        # Если нашли - убиваем
+        if [ -n "$ID" ]; then
+          docker rm -f $ID
+        fi
+      ignore_errors: yes
+    
     - name: Stop and remove ONLY Application containers
       shell: |
         docker-compose stop web nginx db || true
