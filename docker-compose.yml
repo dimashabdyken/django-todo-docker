@@ -36,13 +36,16 @@ services:
       - DB_HOST=db # имя сервиса к которому нужно подключиться
     # Ждем, пока сервис 'db' запустится и пройдет проверку здоровья (healthcheck)
       - PYTHONPATH=/usr/src/app
+    # Команда, которая переопределит или подтвердит CMD из Dockerfile
+    command: gunicorn --bind 0.0.0.0:8000 myproject.wsgi:application
+    ports: 
+      - "8000:8000"
+    volumes:
+      - static_volume:/usr/src/app/staticfiles
+      - .:usr/src/app
     depends_on:
       db:
         condition: service_healthy
-    # Команда, которая переопределит или подтвердит CMD из Dockerfile
-    command: gunicorn --bind 0.0.0.0:8000 myproject.wsgi:application
-    volumes:
-      - static_volume:/usr/src/app/staticfiles
   
   nginx:
     # 1. Заменяем 'image' на 'build' для сборки собственного образа Nginx 
