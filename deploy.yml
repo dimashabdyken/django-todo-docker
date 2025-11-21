@@ -5,31 +5,27 @@
   gather_facts: no
 
   tasks:
-    # 1. Освобождаем порт 80 и имена (на всякий случай)
+    # Гарантированное удаление старых контейнеров, чтобы не было конфликтов портов
     - name: Force kill Web/Nginx containers
       shell: |
         docker rm -f django_web nginx_proxy || true
       args:
         chdir: "{{ playbook_dir }}"
 
-    # 2. Права доступа
     - name: Ensure Nginx config has correct permissions
       file:
         path: "{{ playbook_dir }}/nginx/default.conf"
         mode: '0644'
 
-    # 3. ЗАПУСК (Jenkins и DB не трогаем, обновляем только Web)
     - name: Start Application
       shell: docker-compose up -d --build --force-recreate web nginx db
       args:
         chdir: "{{ playbook_dir }}"
 
-    # 4. Ждем базу
     - name: Wait for database connection
       pause:
         seconds: 10
 
-    # 5. Миграции и статика
     - name: Apply Database Migrations
       shell: docker exec django_web python manage.py migrate --noinput
 
