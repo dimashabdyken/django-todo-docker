@@ -1,82 +1,65 @@
 version: '3.8'
 
 services:
-  # 1. Сервис базы данных PostgreSQL
   db:
-    image: postgres:16-alpine # Используем официальный, легкий образ PostgreSQL
-    container_name: postgres_db
-    # Переменные окружения для настройки самой базы данных
+    image: postgres:16-alpine
+    # Убрали container_name, теперь Docker сам назовет его корректно
     environment:
       - POSTGRES_DB=todo_db
       - POSTGRES_USER=devops_user
       - POSTGRES_PASSWORD=secure_password123
-    # Создаем внешний том для сохранения данных БД
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    # Даем немного времени для запуска БД
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U devops_user -d todo_db"]
       interval: 5s
       timeout: 5s
       retries: 5
 
-  # 2. Сервис веб-приложения Django
   web:
-    build: . 
-    container_name: django_web
-    # Переменные окружения
+    build: .
+    # Убрали container_name
     environment:
       - DB_NAME=todo_db
       - DB_USER=devops_user
       - DB_PASSWORD=secure_password123
       - DB_HOST=db
       - PYTHONPATH=/usr/src/app
-    # Команда с --reload для автообновления кода
     command: gunicorn --bind 0.0.0.0:8000 --reload myproject.wsgi:application
-    ports: 
+    ports:
       - "8000:8000"
     volumes:
       - static_volume:/usr/src/app/staticfiles
-      - .:/usr/src/app  # <-- ИСПРАВЛЕНО: Добавлен слэш в начале
+      - .:/usr/src/app
     depends_on:
       db:
         condition: service_healthy
-  
+
   nginx:
-    # 1. Заменяем 'image' на 'build' для сборки собственного образа Nginx 
-    # (который будет содержать config из nginx/Dockerfile)
-    build: ./nginx 
-    container_name: nginx_proxy
+    build: ./nginx
+    # Убрали container_name
     ports:
       - "80:80"
     volumes:
-      # 2. УДАЛЯЕМ проблемное монтирование конфигурационного файла default.conf
-      # (теперь он будет скопирован в образ)
-
-      # 3. ДОБАВЛЯЕМ монтирование тома статических файлов Django.
-      # Nginx должен иметь доступ к тому, куда Django собрал статику.
-      - static_volume:/usr/src/app/staticfiles 
+      - static_volume:/usr/src/app/staticfiles
     depends_on:
       - web
 
   jenkins:
-    # ИСПОЛЬЗУЕМ: Собрать образ из нашего нового Dockerfile.jenkins
-    build: 
-      context: . # Контекст - текущая директория
-      dockerfile: Dockerfile.jenkins # Имя файла
-    
-    privileged: true 
+    build:
+      context: .
+      dockerfile: Dockerfile.jenkins
+    # Убрали container_name
+    privileged: true
     user: root
     ports:
       - "8080:8080"
       - "50000:50000"
-    container_name: jenkins_server
     volumes:
       - jenkins_home:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
     restart: unless-stopped
 
-# Определение внешнего тома, который будет хранить данные PostgreSQL на вашем компьютере
 volumes:
   postgres_data:
   static_volume:
