@@ -22,27 +22,22 @@ services:
 
   # 2. Сервис веб-приложения Django
   web:
-    # Инструкция для Docker: собрать образ, используя Dockerfile в текущей директории
     build: . 
     container_name: django_web
-    # Проброс портов: 8000 хоста на 8000 контейнера
-    # ports:
-    # - "8000:8000"
-    # Переменные окружения для подключения Django к БД
+    # Переменные окружения
     environment:
       - DB_NAME=todo_db
       - DB_USER=devops_user
       - DB_PASSWORD=secure_password123
-      - DB_HOST=db # имя сервиса к которому нужно подключиться
-    # Ждем, пока сервис 'db' запустится и пройдет проверку здоровья (healthcheck)
+      - DB_HOST=db
       - PYTHONPATH=/usr/src/app
-    # Команда, которая переопределит или подтвердит CMD из Dockerfile
-    command: gunicorn --bind 0.0.0.0:8000 myproject.wsgi:application
+    # Команда с --reload для автообновления кода
+    command: gunicorn --bind 0.0.0.0:8000 --reload myproject.wsgi:application
     ports: 
       - "8000:8000"
     volumes:
       - static_volume:/usr/src/app/staticfiles
-      - .:usr/src/app
+      - .:/usr/src/app  # <-- ИСПРАВЛЕНО: Добавлен слэш в начале
     depends_on:
       db:
         condition: service_healthy
