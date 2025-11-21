@@ -7,8 +7,13 @@
   tasks:
     - name: Stop and remove ONLY Application containers
       shell: |
+        docker-compose stop web nginx db || true
+        
         # Удаляем только контейнеры приложения, не трогая Jenkins
         docker rm -f django_web nginx_proxy postgres_db || true
+      
+        # Дополнительно удаляем сирот
+        docker-compose down --remove-orphans  || true
       args:
         chdir: "{{ playbook_dir }}"
 
