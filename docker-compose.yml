@@ -1,3 +1,6 @@
+
+name: todo_app
+
 version: '3.8'
 
 services:
@@ -30,8 +33,7 @@ services:
       - "8000:8000"
     volumes:
       - static_volume:/usr/src/app/staticfiles
-      # ЭТА СТРОКА ЗАКОММЕНТИРОВАНА, ЧТОБЫ НЕ ЛОМАТЬ JENKINS
-      # - .:/usr/src/app
+      # - .:/usr/src/app  <-- Оставляем выключенным для стабильности Jenkins
     depends_on:
       db:
         condition: service_healthy
