@@ -10,5 +10,5 @@ docker-compose down --remove-orphans
 echo "Запуск сирот"
 docker-compose up -d --build web nginx db
 
-echo "Готоово. Проверка статуса контейнеров:"
+echo "Готово. Проверка статуса контейнеров:"
 docker-compose ps
