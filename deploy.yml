@@ -5,14 +5,9 @@
   gather_facts: no
 
   tasks:
-    # 1. Принудительно освобождаем место (удаляем старые контейнеры по именам)
-    # Мы не трогаем Jenkins и базу (если она нужна постоянной), но убиваем веб-часть.
-    - name: Force remove Web/Nginx containers to avoid conflicts
+    - name: Force remove ALL application containers
       shell: |
-        docker rm -f django_web nginx_proxy || true
-      args:
-        chdir: "{{ playbook_dir }}"
-
+        docker rm -f django_web nginx_proxy postgres_db || true
     # 2. На всякий случай чистим сирот (благодаря .env это сработает идеально)
     - name: Clean up orphans
       shell: docker-compose down --remove-orphans
