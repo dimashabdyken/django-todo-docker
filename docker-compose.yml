@@ -30,7 +30,8 @@ services:
       - "8000:8000"
     volumes:
       - static_volume:/usr/src/app/staticfiles
-      - .:/usr/src/app
+      # ЭТА СТРОКА ЗАКОММЕНТИРОВАНА, ЧТОБЫ НЕ ЛОМАТЬ JENKINS
+      # - .:/usr/src/app
     depends_on:
       db:
         condition: service_healthy
