@@ -3,7 +3,7 @@ version: '3.8'
 services:
   db:
     image: postgres:16-alpine
-    # container_name: postgres_db  <-- УДАЛИЛИ
+    container_name: postgres_db
     environment:
       - POSTGRES_DB=todo_db
       - POSTGRES_USER=devops_user
@@ -18,7 +18,7 @@ services:
 
   web:
     build: . 
-    # container_name: django_web  <-- УДАЛИЛИ
+    container_name: django_web
     environment:
       - DB_NAME=todo_db
       - DB_USER=devops_user
@@ -37,7 +37,7 @@ services:
   
   nginx:
     build: ./nginx 
-    # container_name: nginx_proxy <-- УДАЛИЛИ
+    container_name: nginx_proxy
     ports:
       - "80:80"
     volumes:
@@ -49,7 +49,7 @@ services:
     build: 
       context: . 
       dockerfile: Dockerfile.jenkins
-    # container_name: jenkins_server <-- УДАЛИЛИ
+    container_name: jenkins_server
     privileged: true 
     user: root
     ports:

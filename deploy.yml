@@ -5,45 +5,40 @@
   gather_facts: no
 
   tasks:
-    # Шаг 1: Убиваем всех, кто занимает 80 порт (на всякий случай)
-    - name: Force kill any container occupying port 80
+    # 1. Принудительно освобождаем место (удаляем старые контейнеры по именам)
+    # Мы не трогаем Jenkins и базу (если она нужна постоянной), но убиваем веб-часть.
+    - name: Force remove Web/Nginx containers to avoid conflicts
       shell: |
-        ID=$(docker ps -q -f "publish=80")
-        if [ -n "$ID" ]; then
-          docker rm -f $ID
-        fi
-      ignore_errors: yes
+        docker rm -f django_web nginx_proxy || true
+      args:
+        chdir: "{{ playbook_dir }}"
 
-    # Шаг 2: Останавливаем и чистим старые контейнеры через Compose
-    - name: Stop and remove application containers
+    # 2. На всякий случай чистим сирот (благодаря .env это сработает идеально)
+    - name: Clean up orphans
       shell: docker-compose down --remove-orphans
       args:
         chdir: "{{ playbook_dir }}"
 
-    # Шаг 3: Гарантируем права на конфиг
+    # 3. Права на конфиг
     - name: Ensure Nginx config has correct permissions
       file:
         path: "{{ playbook_dir }}/nginx/default.conf"
         mode: '0644'
 
-    # Шаг 4: Запускаем веб-часть (Дженкинс не трогаем, он и так работает)
+    # 4. ЗАПУСК. Благодаря .env проект будет называться так же, как у тебя локально.
     - name: Start Application
       shell: docker-compose up -d --build --force-recreate web nginx db
       args:
         chdir: "{{ playbook_dir }}"
 
-    # Шаг 5: Ждем базу
-    - name: Wait for database to be ready
+    # 5. Ждем базу
+    - name: Wait for database connection
       pause:
-        seconds: 15
+        seconds: 10
 
-    # Шаг 6: Миграции и статика (используем имя сервиса 'web', а не имя контейнера)
+    # 6. Миграции
     - name: Apply Database Migrations
-      shell: docker-compose exec -T web python manage.py migrate --noinput
-      args:
-        chdir: "{{ playbook_dir }}"
+      shell: docker exec django_web python manage.py migrate --noinput
 
     - name: Collect Static Files
-      shell: docker-compose exec -T web python manage.py collectstatic --noinput
-      args:
-        chdir: "{{ playbook_dir }}"
+      shell: docker exec django_web python manage.py collectstatic --noinput
