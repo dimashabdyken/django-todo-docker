@@ -18,7 +18,7 @@ pipeline {
         stage('Run Django Tests') {
             steps {
                 script {
-                    // Запускаем тесты во временном контейнере
+                    // Запуск тестов во временном контейнере
                     sh 'docker rm -f test-container || true'
                     sh "docker run -d --name test-container django-todo-image:latest sh -c 'sleep 30'"
                     sh 'sleep 5' 
@@ -30,7 +30,6 @@ pipeline {
         
         stage('Deploy via Ansible') {
             steps {
-                // Вся магия теперь тут
                 echo "Starting Deployment via Ansible..."
                 sh 'ansible-playbook deploy.yml'
             }

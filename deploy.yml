@@ -5,7 +5,7 @@
   gather_facts: no
 
   tasks:
-    # Гарантированное удаление старых контейнеров, чтобы не было конфликтов портов
+    # Удаление старых контейнеров 
     - name: Force kill Web/Nginx containers
       shell: |
         docker rm -f django_web nginx_proxy || true
