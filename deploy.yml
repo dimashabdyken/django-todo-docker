@@ -1,26 +1,46 @@
 ---
 - name: Deploy Django App via Docker Compose
-  hosts: localhost
-  connection: local
+  hosts: webservers
   gather_facts: no
 
+  vars:
+    project_dir: "/home/ubuntu/app"
+
   tasks:
-    # Удаление старых контейнеров 
+    - name: Create project directory
+      file:
+        path: "{{ project_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Copy project files
+      synchronize:
+        src: ./
+        dest: "{{ project_dir }}"
+        # rsync_opts нужны, чтобы исключить лишнее и ускорить копирование
+        rsync_opts:
+          - "--exclude=.git"
+          - "--exclude=venv"
+          - "--exclude=terraform"
+          - "--exclude=__pycache__"
+          - "--exclude=jenkins_home"
+
+    # Удаление старых контейнеров (для освобождения порта 80)
     - name: Force kill Web/Nginx containers
       shell: |
         docker rm -f django_web nginx_proxy || true
       args:
-        chdir: "{{ playbook_dir }}"
+        chdir: "{{ project_dir }}"
 
     - name: Ensure Nginx config has correct permissions
       file:
-        path: "{{ playbook_dir }}/nginx/default.conf"
+        path: "{{ project_dir }}/nginx/default.conf"
         mode: '0644'
 
     - name: Start Application
-      shell: docker-compose up -d --build --force-recreate web nginx db
+      shell: docker compose up -d --build --force-recreate web nginx db
       args:
-        chdir: "{{ playbook_dir }}"
+        chdir: "{{ project_dir }}"
 
     - name: Wait for database connection
       pause:
