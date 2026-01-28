@@ -14,8 +14,8 @@ spec:
     spec:
       containers:
         - name: django
-          image: django-todo-docker:v1
-          imagePullPolicy: Never
+          image: technobladedocker/django-todo-docker:v1
+          imagePullPolicy: Always
           ports:
             - containerPort: 8000
 
@@ -36,7 +36,7 @@ spec:
                   name: django-config
                   key: ALLOWED_HOSTS
 
-            # 2. Берем из Secret секретные переменные
+            # 2) Secret секретные переменные
             - name: DB_NAME
               valueFrom:
                 secretKeyRef:
