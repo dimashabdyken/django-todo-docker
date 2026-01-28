@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = 'technobladedocker_DOCKERHUB/django-todo:v1' 
+        DOCKER_IMAGE = 'technobladedocker/django-todo:v1' 
         DOCKER_CREDS = 'docker-hub-creds'
     }
 
