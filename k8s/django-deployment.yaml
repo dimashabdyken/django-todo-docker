@@ -18,8 +18,8 @@ spec:
           imagePullPolicy: Always
           ports:
             - containerPort: 8000
-
           env:
+            # ConfigMap variables
             - name: DB_HOST
               valueFrom:
                 configMapKeyRef:
@@ -35,8 +35,7 @@ spec:
                 configMapKeyRef:
                   name: django-config
                   key: ALLOWED_HOSTS
-
-            # 2) Secret секретные переменные
+            # Secret variables
             - name: DB_NAME
               valueFrom:
                 secretKeyRef:
@@ -52,3 +51,22 @@ spec:
                 secretKeyRef:
                   name: postgres-secret
                   key: POSTGRES_PASSWORD
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 5
