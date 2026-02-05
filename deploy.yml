@@ -1,5 +1,5 @@
 ---
-- name: Deploy Django App via Docker Compose
+- name: Deploy FastAPI App via Docker Compose
   hosts: webservers
   gather_facts: no
 
@@ -28,7 +28,7 @@
     # Удаление старых контейнеров (для освобождения порта 80)
     - name: Force kill Web/Nginx containers
       shell: |
-        docker rm -f django_web nginx_proxy || true
+        docker rm -f fastapi_web nginx_proxy || true
       args:
         chdir: "{{ project_dir }}"
 
@@ -45,9 +45,3 @@
     - name: Wait for database connection
       pause:
         seconds: 10
-
-    - name: Apply Database Migrations
-      shell: docker exec django_web python manage.py migrate --noinput
-
-    - name: Collect Static Files
-      shell: docker exec django_web python manage.py collectstatic --noinput

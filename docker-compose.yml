@@ -19,14 +19,14 @@ services:
 
   web:
     build: . 
-    container_name: django_web
+    container_name: fastapi_web
     environment:
       - DB_NAME=todo_db
       - DB_USER=devops_user
       - DB_PASSWORD=secure_password123
       - DB_HOST=db
       - PYTHONPATH=/usr/src/app
-    command: gunicorn --bind 0.0.0.0:8000 --reload myproject.wsgi:application
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
     ports: 
       - "8000:8000"
     volumes:
