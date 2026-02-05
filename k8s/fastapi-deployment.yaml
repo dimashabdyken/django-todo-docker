@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: django-web
+  name: fastapi-web
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: django
+      app: fastapi
   template:
     metadata:
       labels:
-        app: django
+        app: fastapi
     spec:
       containers:
-        - name: django
-          image: technobladedocker/django-todo-docker:v1
+        - name: fastapi
+          image: technobladedocker/fastapi-todo-docker:v1
           imagePullPolicy: Always
           ports:
             - containerPort: 8000
@@ -23,18 +23,13 @@ spec:
             - name: DB_HOST
               valueFrom:
                 configMapKeyRef:
-                  name: django-config
+                  name: fastapi-config
                   key: DB_HOST
             - name: DEBUG
               valueFrom:
                 configMapKeyRef:
-                  name: django-config
+                  name: fastapi-config
                   key: DEBUG
-            - name: ALLOWED_HOSTS
-              valueFrom:
-                configMapKeyRef:
-                  name: django-config
-                  key: ALLOWED_HOSTS
             # Secret variables
             - name: DB_NAME
               valueFrom:
