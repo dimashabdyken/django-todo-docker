@@ -1,6 +1,7 @@
-asgiref==3.10.0
-Django==5.2.7
-gunicorn==23.0.0
-packaging==25.0
-psycopg2-binary==2.9.10
-sqlparse==0.5.3
+fastapi==0.109.0
+uvicorn[standard]==0.27.0  # Сервер для запуска
+sqlalchemy==2.0.25         # Работа с базой данных
+psycopg2-binary==2.9.9     # Драйвер для Postgres
+alembic==1.13.1            # Для миграций 
+pydantic==2.6.0            # Валидация данных
+pydantic-settings==2.1.0   # Управление настройками 
