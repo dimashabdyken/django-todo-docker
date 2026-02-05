@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: django-service
+  name: fastapi-service
 spec:
   selector:
-    app: django
+    app: fastapi
   ports:
     - protocol: TCP
       port: 8000
